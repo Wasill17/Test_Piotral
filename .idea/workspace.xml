@@ -5,10 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9584d57f-f5b0-4bcf-9319-d9b1f2716605" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Backend/Kod testowy z flaskiem/static/css/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Backend/Kod testowy z flaskiem/templates/base.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Backend/Kod testowy z flaskiem/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/Kod testowy z flaskiem/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/Kod testowy z flaskiem/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/Main1(testFlaska).iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/app.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/static/css/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/templates/base.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/templates/index.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
