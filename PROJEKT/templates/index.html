@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 
 {% block head %}
-<h1>Welcome</h1>
+
 {% endblock %}
 
 {% block body %}
-
+<h1>TestPiotral dodawanie ocen do bazy danych</h1>
+<form action="/" method="POST">
+    <input type="text" name="ocena" id="ocena">
+    <input type="submit" value="Dodaj ocenę">
+</form>
 {% endblock %}

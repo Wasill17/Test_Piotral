@@ -5,17 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9584d57f-f5b0-4bcf-9319-d9b1f2716605" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/Main1(testFlaska).iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/static/css/style.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/templates/base.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/Kod testowy z flaskiem/templates/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/templates/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,19 +44,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Github repositories/Test_Piotral&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.app.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/Github repositories/Test_Piotral",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-0e3be3396995-c546a90a8094-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.23339.19" />
+        <option value="bundled-python-sdk-d7ad00fb9fc3-c546a90a8094-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.23726.102" />
       </set>
     </attachedChunks>
   </component>
