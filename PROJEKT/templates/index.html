@@ -1,13 +1,38 @@
-{% extends 'base.html' %}
-
-{% block head %}
-
-{% endblock %}
+{% extends "base.html" %}
 
 {% block body %}
-<h1>TestPiotral dodawanie ocen do bazy danych</h1>
-<form action="/" method="POST">
-    <input type="text" name="grade" id="grade">
-    <input type="submit" value="Dodaj ocenę">
-</form>
+<div class="header">
+    <a href="/" class="logo">TestPiotral</a>
+    <nav class="navbar">
+      <a href="#funkcje">Funkcje</a>
+      <a href="#jak-dziala">Jak to działa</a>
+      <a href="#kontakt">Kontakt</a>
+      <a href="/login" class="btn1">Zaloguj się</a>
+      <a href="/login" class="btn2">Zarejestruj się</a>
+    </nav>
+  </div>
+  
+<div class="header">
+    
+</div>
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Aplikacja Testująca</h1>
+      <p>To aplikacja do przeprowadzania testów. Kliknij poniżej, aby rozpocząć.</p>
+      <a href="/login" class="btn3">Zacznij teraz</a>
+    </div>
+
+    <div class="hero-right">
+      <img src="" alt="Main image">
+    </div>
+  </div>
+
+  <div class="Bottom">
+    <p class="top-line">Testuj mądrze, ucz się lepiej.</p>
+    <p class="middle-line">Twój portal do świata pytań (i czasem odpowiedzi).</p>
+  </div>
+
+  <p class="outside-line">Przekonaj się, jak wszechstronny może być TestPiotral — zacznij już dziś!</p>  
+  </div>
 {% endblock %}
+
