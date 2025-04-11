@@ -21,9 +21,13 @@ class Grades(db.Model):
     def __repr__(self):
         return '<Task %r' % self.id
 
-@app.route('/', methods=['POST','GET']) # POST daje nam mozliwosc wysylania danych do bazy danych
+@app.route('/') #Strona glowna
+def index():
+    return render_template('index.html')
 
-def index(): #kod do index.html
+@app.route('/grades', methods=['POST','GET']) # POST daje nam mozliwosc wysylania danych do bazy danych
+
+def grades(): #kod do grades.html
     if request.method == 'POST': # jezeli klikniemy np. przycisk ktory jest w <form action="/" method="POST"> to wykonuje sie to co pod spodem
         grade_content = int(request.form['grade']) # ta zmienna zbiera wartość z pola obok przycisku w momencie kiedy go klikniemy
         new_grade = Grades(Grade=grade_content)
@@ -36,7 +40,7 @@ def index(): #kod do index.html
             return "Wystapil blad przy dodawaniu oceny"
 
     else:
-        return render_template('index.html')
+        return render_template('grades.html')
 
 
 
