@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Logowanie / Rejestracja</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}" />
+    <script src="../static/js/formTabs.js" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="tabs">
+        <div class="tab {% if tab == 'register' %}active{% endif %}" onclick="showTab('register')">Rejestracja</div>
+        <div class="tab {% if tab == 'login' %}active{% endif %}" onclick="showTab('login')">Logowanie</div>
+    </div>
+
+    <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}>
+        <div class="form-group">
+            <input type="text" name="first-name" id="first-name" placeholder=" " required>
+            <label for="first-name">Imie</label>
+        </div>
+        <div class="form-group">
+            <input type="text" name="last-name" id="last-name" placeholder=" " required>
+            <label for="last-name">Nazwisko</label>
+        </div>
+        <div class="form-group">
+            <input type="email" name="email" id="email" placeholder=" " required>
+            <label for="email">Email</label>
+        </div>
+        <div class="form-group">
+            <input type="password" name="password" id="password" placeholder=" " pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$" required>
+            <label for="password">Hasło</label>
+        </div>
+        <div class="form-group">
+            <input type="password" name="confirm-password" id="confirm-password" placeholder=" " required>
+            <label for="confirm-password">Potwierdź hasło</label>
+        </div>
+        <button type="submit">Zarejestruj się</button>
+    </form>
+
+    <form id="loginForm" method="POST" action="/login" {% if tab != 'login' %}class="hidden"{% endif %}>
+        <div class="form-group">
+            <input type="text" name="username" id="login-username" placeholder=" " required>
+            <label for="login-username">Username</label>
+        </div>
+
+        <div class="form-group">
+            <input type="password" name="password" id="login-password" placeholder=" " required>
+            <label for="login-password">Password</label>
+        </div>
+
+        <button type="submit">Zaloguj</button>
+    </form>
+</div>
+{% endblock %}

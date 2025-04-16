@@ -25,6 +25,10 @@ class Grades(db.Model):
 def index():
     return render_template('index.html')
 
+@app.route('/register') #logowanie/rejestracja
+def register():
+    return render_template('auth.html', tab='register') #defaultowo sie odpala na rejestracji
+
 @app.route('/grades', methods=['POST','GET']) # POST daje nam mozliwosc wysylania danych do bazy danych
 
 def grades(): #kod do grades.html
