@@ -8,7 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PROJEKT/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PROJEKT/instance/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/instance/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJEKT/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/templates/auth.html" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/templates/auth.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
