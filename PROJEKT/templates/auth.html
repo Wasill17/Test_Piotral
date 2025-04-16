@@ -37,6 +37,12 @@
         <button type="submit">Zarejestruj się</button>
     </form>
 
+    {% if error %}
+    <div class="error-message" style="color: red; text-align: center; margin-top: 30px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
     <form id="loginForm" method="POST" action="/login" {% if tab != 'login' %}class="hidden"{% endif %}>
         <div class="form-group">
             <input type="text" name="username" id="login-username" placeholder=" " required>
