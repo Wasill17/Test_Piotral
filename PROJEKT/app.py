@@ -36,29 +36,57 @@ class UserInfo(db.Model):
 def index():
     return render_template('index.html')
 
-@app.route('/register', methods=['POST','GET']) #logowanie/rejestracja
+@app.route('/register', methods=['GET','POST'])
 def register():
-    if request.method == "POST":
-        session.permanent = True
-        first_name = request.form['first-name']
-        last_name = request.form['last-name']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm-password']
 
-        #Sprawdzenie czy haslo zostalo wpisane poprawnie w confirm password
-        if password != confirm_password:
-            return render_template('auth.html', tab='register', error="Podaj poprawne hasło")
 
-        new_user = UserInfo(first_name=first_name,
-                        last_name=last_name,
-                        email=email,
-                        password=password)
-        db.session.add(new_user)
-        db.session.commit()
+    if request.method == 'POST':
+        # jeśli w formularzu jest pole 'first-name' znaczy ze to rejestracja
+        if 'first-name' in request.form:
+            first_name = request.form['first-name']
+            last_name = request.form['last-name']
+            email = request.form['email']
+            password = request.form['password']
+            confirm_password = request.form['confirm-password']
+
+            if password != confirm_password:
+                return render_template('auth.html', tab='register', error="Hasła się nie zgadzają")
+
+            new_user = UserInfo(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=password
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('register', tab='login'))
+
+        # jeśli jest pole 'login-email' znaczy ze to logowanie
+        elif 'login-email' in request.form:
+            email = request.form['login-email']
+            password = request.form['login-password']
+
+            user1 = UserInfo.query.filter_by(email=email, password=password).first()
+            if user1:
+                session.permanent = True
+                session['user_id'] = user1.id
+                session['user_name'] = f"{user1.first_name} {user1.last_name}"
+                return redirect(url_for('user'))
+            else:
+                return render_template('auth.html', tab='login', error="Nieprawidłowy email lub hasło")
+
+    # GET (lub żadne POST‐owe klucze), wtedy po prostu pokaż template
+    tab = request.args.get('tab', 'register')
+    return render_template('auth.html', tab=tab)
+
+@app.route('/user') #ekran do ktorego przechodzimy po zalogowaniu - na razie pusty
+def user():
+    if 'user_id' in session:
+        name = session.get('user_name')
+        return render_template('user.html', name=name)
+    else:
         return redirect(url_for('register', tab='login'))
-
-    return render_template('auth.html', tab='register') #defaultowo sie odpala na rejestracji
 
 @app.route('/grades', methods=['POST','GET']) # POST daje nam mozliwosc wysylania danych do bazy danych
 def grades(): #kod do grades.html

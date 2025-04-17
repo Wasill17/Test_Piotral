@@ -16,7 +16,7 @@
     <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}>
         <div class="form-group">
             <input type="text" name="first-name" id="first-name" placeholder=" " required>
-            <label for="first-name">Imie</label>
+            <label for="first-name">Imię</label>
         </div>
         <div class="form-group">
             <input type="text" name="last-name" id="last-name" placeholder=" " required>
@@ -37,24 +37,26 @@
         <button type="submit">Zarejestruj się</button>
     </form>
 
-    {% if error %}
+    {% if error and tab == 'register' %}
     <div class="error-message" style="color: red; text-align: center; margin-top: 30px;">
         {{ error }}
     </div>
     {% endif %}
 
-    <form id="loginForm" method="POST" action="/login" {% if tab != 'login' %}class="hidden"{% endif %}>
+    <form id="loginForm" method="POST" action="{{ url_for('register', tab='login') }}" {% if tab != 'login' %}class="hidden"{% endif %}>
         <div class="form-group">
-            <input type="text" name="username" id="login-username" placeholder=" " required>
-            <label for="login-username">Username</label>
+            <input type="email" name="login-email" id="login-email" placeholder=" " required>
+            <label for="login-email">Email</label>
         </div>
 
+
         <div class="form-group">
-            <input type="password" name="password" id="login-password" placeholder=" " required>
-            <label for="login-password">Password</label>
+            <input type="password" name="login-password" id="login-password" placeholder=" " required>
+            <label for="login-password">Hasło</label>
         </div>
 
-        <button type="submit">Zaloguj</button>
+        <button type="submit">Zaloguj się</button>
+
     </form>
 </div>
 {% endblock %}
