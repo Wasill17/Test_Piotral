@@ -13,7 +13,13 @@
         <div class="tab {% if tab == 'login' %}active{% endif %}" onclick="showTab('login')">Logowanie</div>
     </div>
 
-    <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}>
+    <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}><div class="form-group">
+        <label for="role">Moja rola:</label>
+        <select name="role" id="role" required>
+            <option value="student">Uczeń</option>
+            <option value="nauczyciel">Nauczyciel</option>
+        </select>
+  </div>
         <div class="form-group">
             <input type="text" name="first-name" id="first-name" placeholder=" " required>
             <label for="first-name">Imię</label>
@@ -34,6 +40,7 @@
             <input type="password" name="confirm-password" id="confirm-password" placeholder=" " required>
             <label for="confirm-password">Potwierdź hasło</label>
         </div>
+
         <button type="submit">Zarejestruj się</button>
     </form>
 
