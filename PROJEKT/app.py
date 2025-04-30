@@ -14,6 +14,12 @@ class Grades(db.Model):
     id = db.Column("id", db.Integer, primary_key=True, autoincrement = True)
     Grade = db.Column("Grade", db.Integer, nullable = False) # NOT NULL)
     added_date = db.Column("added_date", db.DateTime, default=datetime.utcnow) # tu trzeba bedzie dac jakas inną funkcje bo datetime.utcnow ma byc usunieta niedlugo
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user_info.id'), nullable=False) #z jakiego powodu przy db.ForeignKey trzeba dac user_info.id zamiast UserInfo.id, bo tak generuje SQLalchemy
+    user = db.relationship('UserInfo', backref='grades')
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
+    subject = db.relationship('Subjects', backref='grades')
+
     __table_args__ = (CheckConstraint('Grade >= 2 AND Grade <= 5', name='Limit_Ocen'),) # oceny od 2 do 5
 
     #def __init__(self):
@@ -31,7 +37,28 @@ class UserInfo(db.Model):
     def __repr__(self):
         return '<User %r' % self.id
 
+class Subjects(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subject_name = db.Column(db.String, nullable=False)
 
+    def __repr__(self):
+        return f'<Subject {self.subject_name}>'
+
+class Tests(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    test_title = db.Column(db.String, nullable=False)
+    test_description = db.Column(db.String, nullable=False)
+    max_points = db.Column(db.Integer, nullable=False)
+
+    teacher_id = db.Column(db.Integer, db.ForeignKey('user_info.id'), nullable=False)
+    teacher = db.relationship('UserInfo', backref='tests')
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
+    subject = db.relationship('Subjects', backref='tests')
+
+
+
+    def __repr__(self):
+        return f'<Test {self.test_title}>'
 
 @app.route('/') #Strona glowna
 def index():
@@ -140,8 +167,21 @@ def grades(): #kod do grades.html
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # tworzy baze danych przy odpaleniu\dodaje do niej nowe tabele albo kolumny w istniejacych tabelach
-                         # ale nie aktualizuje juz istniejacych kolumn, wiec trzeba bedzie tez przy tym przysiąść jakbysmy chcieli cos modyfikowac
-                         # no ale to w przyszlosci o tym pomyslimy
+        db.create_all()
+
+        # Dodaj przedmioty, jeśli tabela jest pusta
+        if Subjects.query.count() == 0:
+            default_subjects = [
+                Subjects(subject_name='Matematyka'), #losowe przedmioty dla testu, w kazdym momencie mozna je zmienic
+                Subjects(subject_name='Fizyka'),
+                Subjects(subject_name='Biologia'),
+                Subjects(subject_name='Informatyka'),
+                Subjects(subject_name='Chemia')
+            ]
+            db.session.bulk_save_objects(default_subjects)
+            db.session.commit()
+            print("✔️ Dodano domyślne przedmioty do bazy danych.")
+
+
 
     app.run(debug=True)

@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
+{% extends "base.html" %}
+{% block head %}
     <title>Panel nauczyciela</title>
+    <!-- na razie dalym w tym htmlu sekcje style, bo nie chce mieszać w plikach css, chcialem poprostu zebyscie widzieli moja wizje jak to mogloby wygladac, mozecie to pozniej usunac -->
+    <!-- i podpiac pod jakis plik css -->
     <style>
         .top-right {
             position: absolute;
@@ -10,14 +10,47 @@
             right: 30px;
             font-weight: bold;
         }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(2, 150px);
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 100px;
+        }
+
+        .grid-button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .grid-button:hover {
+            background-color: #45a049;
+        }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     <div class="top-right">
-        Zalogowany jako: {{ name }}
+        Zalogowany jako: {{ name }} ({{ role }})
     </div>
 
-    <h1>Witaj, {{ name }}!</h1>
-    <p>To jest twoja strona użytkownika ({{ role }}).</p>
-</body>
-</html>
+    <h1 style="text-align: center;">Witaj, {{ name }}!</h1>
+    <p style="text-align: center;">To jest twoja strona użytkownika.</p>
+
+    <div class="button-grid">
+        <button class="grid-button">Sprawdziany</button>
+        <button class="grid-button">Oceny Uczniów</button>
+        <button class="grid-button">Uczniowie</button>
+        <button class="grid-button">Przycisk 4</button>
+        <button class="grid-button">Przycisk 5</button>
+        <button class="grid-button">Przycisk 6</button>
+    </div>
+{% endblock %}
