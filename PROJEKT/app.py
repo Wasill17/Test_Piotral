@@ -60,6 +60,28 @@ class Tests(db.Model):
     def __repr__(self):
         return f'<Test {self.test_title}>'
 
+class Groups(db.Model):
+    __tablename__ = 'groups'
+    id           = db.Column(db.Integer, primary_key=True)
+    name         = db.Column(db.String, nullable=False)
+    teacher_id   = db.Column(db.Integer, db.ForeignKey('user_info.id'), nullable=False)
+    teacher      = db.relationship('UserInfo', backref='owned_groups')
+    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    students     = db.relationship('UserInfo', secondary='group_students', backref='groups')
+    tests        = db.relationship('Tests', secondary='group_tests', backref='assigned_groups')
+
+# TABELA ASOCJACYJNA - DO TWORZENIA LISTY OBIEKTÓW UserInfo
+class GroupStudents(db.Model):
+    __tablename__ = 'group_students'
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), primary_key=True)
+    user_id  = db.Column(db.Integer, db.ForeignKey('user_info.id'), primary_key=True)
+
+# TABELA ASOCJACYJNA - DO TWORZENIA LISTY OBIEKTÓW Tests PRZYPISANYCH DO GRUPY
+class GroupTests(db.Model):
+    __tablename__ = 'group_tests'
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), primary_key=True)
+    test_id  = db.Column(db.Integer, db.ForeignKey('tests.id'), primary_key=True)
+
 @app.route('/') #Strona glowna
 def index():
     return render_template('index.html')
@@ -161,7 +183,49 @@ def grades(): #kod do grades.html
         return render_template('grades.html')
 
 
+@app.route('/groupsTeacher', methods=['GET','POST'])
+def groupsTeacher():
+    if 'user_id' not in session or session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
 
+    teacher_id = session['user_id']
+
+    if request.method == 'POST':
+        form = request.form
+
+        # 1) tworzenie nowej grupy
+        if 'group_name' in form:
+            name = form['group_name'].strip()
+            if name:
+                g = Groups(name=name, teacher_id=teacher_id)
+                db.session.add(g)
+                db.session.commit()
+            return redirect(url_for('groupsTeacher'))
+
+        # 2) dodawanie / usuwanie ucznia
+        action   = form.get('action')           # "add" lub "remove"
+        group_id = int(form.get('group_id', 0))
+        student_id = int(form.get('student_id', 0))
+
+        group   = Groups.query.filter_by(id=group_id, teacher_id=teacher_id).first()
+        student = UserInfo.query.filter_by(id=student_id, role='student').first()
+
+        if group and student:
+            if action == 'add' and student not in group.students:
+                group.students.append(student)
+                db.session.commit()
+            elif action == 'remove' and student in group.students:
+                group.students.remove(student)
+                db.session.commit()
+
+        return redirect(url_for('groupsTeacher'))
+
+    # GET
+    teacher_groups = Groups.query.filter_by(teacher_id=teacher_id).all()
+    all_students   = UserInfo.query.filter_by(role='student').all()
+    return render_template('groupsTeacher.html',
+                           groups=teacher_groups,
+                           students=all_students)
 
 
 
