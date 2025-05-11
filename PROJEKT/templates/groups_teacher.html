@@ -45,7 +45,7 @@
           <label for="group_id">Grupa:</label>
           <select name="group_id" id="group_id">
             {% for g in groups %}
-              <option value="{{ g.id }}">{{ g.name }}</option>
+              <option value="{{ g.id }}" {% if g.id == selected_group_id %}selected{% endif %}>{{ g.name }}</option>
             {% endfor %}
           </select>
         </div>
@@ -53,7 +53,7 @@
           <label for="student_id">Uczeń:</label>
           <select name="student_id" id="student_id">
             {% for s in students %}
-              <option value="{{ s.id }}">{{ s.first_name }} {{ s.last_name }} (ID: {{ s.id }})</option>
+              <option value="{{ s.id }}" {% if s.id == selected_student_id %}selected{% endif %}>{{ s.first_name }} {{ s.last_name }} (ID: {{ s.id }})</option>
             {% endfor %}
           </select>
         </div>

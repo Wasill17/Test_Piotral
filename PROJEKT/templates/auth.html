@@ -14,8 +14,8 @@
     </div>
 
     <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}><div class="form-group">
-        <label for="role">Moja rola:</label>
         <select name="role" id="role" required>
+            <option value="" disabled selected hidden>Moja rola:</option>
             <option value="student">Uczeń</option>
             <option value="nauczyciel">Nauczyciel</option>
         </select>

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <title>Tworzenie testu</title>
+{% endblock %}
+
+{% block body %}
+  <h1>Tworzenie nowego testu</h1>
+
+  <form method="post">
+    <label for="title">Tytuł testu:</label>
+    <input type="text" id="title" name="title" required><br><br>
+
+    <label for="description">Opis testu:</label>
+    <textarea id="description" name="description" required></textarea><br><br>
+
+    <label for="subject_id">Przedmiot:</label>
+    <select name="subject_id" id="subject_id" required>
+
+      {% for subject in subjects %}
+        <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+      {% endfor %}
+    </select><br><br>
+
+    <button type="submit">Zapisz test</button>
+  </form>
+{% endblock %}

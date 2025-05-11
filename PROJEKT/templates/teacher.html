@@ -46,10 +46,10 @@
     <p style="text-align: center;">To jest twoja strona użytkownika.</p>
 
     <div class="button-grid">
-        <button class="grid-button">Sprawdziany</button>
+        <a href="{{ url_for('teacher_tests') }}" class="grid-button" style="display:flex;justify-content:center;align-items:center;text-decoration:none;">Testy</a>
         <button class="grid-button">Oceny Uczniów</button>
         <button class="grid-button">Uczniowie</button>
-        <a href="{{ url_for('groupsTeacher') }}" class="grid-button" style="display:flex;justify-content:center;align-items:center;text-decoration:none;">Moje grupy</a>
+        <a href="{{ url_for('groups_teacher') }}" class="grid-button" style="display:flex;justify-content:center;align-items:center;text-decoration:none;">Moje grupy</a>
         <button class="grid-button">Przycisk 5</button>
         <button class="grid-button">Przycisk 6</button>
     </div>

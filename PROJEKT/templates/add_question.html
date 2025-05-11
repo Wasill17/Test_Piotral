@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block head %}
+  <title>Dodaj pytanie</title>
+{% endblock %}
+
+{% block body %}
+<h1>Dodaj pytanie do testu: {{ test.title }}</h1>
+
+<form method="post">
+  <label>Treść pytania:</label>
+  <input type="text" name="question_text" required>
+
+  <label>Liczba punktów za to pytanie:</label>
+  <input type="number" name="points" required>
+
+  <hr>
+  <h3>Odpowiedzi:</h3>
+
+  {% for i in range(1, 5) %}
+    <div>
+      <label>Odpowiedź {{ i }}:</label>
+      <input type="text" name="answer_{{ i }}">
+      <label>
+        <input type="checkbox" name="is_correct_{{ i }}"> Poprawna
+      </label>
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="btn">Zapisz pytanie</button>
+</form>
+{% endblock %}
