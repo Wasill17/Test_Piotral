@@ -55,30 +55,27 @@
               <th>ID ucznia</th>
               <th>Imię i nazwisko</th>
               <th>Przedmiot</th>
-              <th>Ocena</th>
-              <th>Data dodania</th>
+              <th>Oceny</th>
             </tr>
           </thead>
           <tbody>
             {% for student in group.students %}
-              {% set count = student.grades|length %}
-              <tr>
-                <td>{{ student.id }}</td>
-                <td>{{ student.first_name }} {{ student.last_name }}</td>
-                {% if count > 0 %}
-                  {% for grade in student.grades %}
-                  <td>{{ grade.subject.subject_name }}</td>
-                  <td>{{ grade.value }}</td>
-                  <td>{{ grade.added_date.strftime("%Y-%m-%d") }}</td>
+              {% if student.grades|length > 0 %}
+                {% for subject_name, grades in student.grades|groupby('subject.subject_name') %}
+                  <tr>
+                    <td>{{ student.id }}</td>
+                    <td>{{ student.first_name }} {{ student.last_name }}</td>
+                    <td>{{ subject_name }}</td>
+                    <td>{{ grades|map(attribute='value')|join(', ') }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td>{{ student.id }}</td>
+                  <td>{{ student.first_name }} {{ student.last_name }}</td>
+                  <td colspan="2" class="no-grades">Brak ocen</td>
                 </tr>
-                  {% if not loop.last %}
-                    <tr><td></td><td></td>
-                  {% endif %}
-                  {% endfor %}
-                {% else %}
-                  <td colspan="3" class="no-grades">Brak ocen</td>
-                </tr>
-                {% endif %}
+              {% endif %}
             {% endfor %}
           </tbody>
         </table>
@@ -86,4 +83,5 @@
     {% endfor %}
   </div>
 {% endblock %}
+
 
