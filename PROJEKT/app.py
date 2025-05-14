@@ -83,9 +83,19 @@ def teacher():
         return render_template('teacher.html', name=name, role=role)
     return redirect(url_for('register', tab='login'))
 
+@app.route('/teacher/studentlist_teacher')
+def studentlist_teacher():
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
+    # pobierz listę wszystkich studentów lub tych w grupach nauczyciela
+    students = UserInfo.query.filter_by(role='student').all()
+    return render_template('studentlist_teacher.html', students=students)
+
 
 @app.route('/grades', methods=['POST', 'GET']) #narazie nie ma nic z tym po zmianie bazy na stronie
 def grades():
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
     if request.method == 'POST':
         try:
             grade_content = int(request.form['grade'])
@@ -107,8 +117,18 @@ def grades():
         except Exception as e:
             return f"Wystąpił błąd: {e}"
 
+
     else:
-        return render_template('grades.html')
+        teacher_id = session.get('user_id')
+        groups = Group.query.filter_by(teacher_id=teacher_id).all()
+        for group in groups:
+            for student in group.students:
+                student.grades = Grade.query.filter_by(user_id=student.id).all()
+        return render_template('grades.html', groups=groups)
+
+
+
+
 
 
 @app.route('/groups_teacher', methods=['GET', 'POST']) #tworzenie grupy, dodawanie studentów i ich usuwanie

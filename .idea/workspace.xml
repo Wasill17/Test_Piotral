@@ -5,10 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9584d57f-f5b0-4bcf-9319-d9b1f2716605" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/PROJEKT/templates/groupsTeacher.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PROJEKT/templates/studentlist_teacher.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PROJEKT/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PROJEKT/instance/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/instance/database.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJEKT/templates/grades.html" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/templates/grades.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PROJEKT/templates/teacher.html" beforeDir="false" afterPath="$PROJECT_DIR$/PROJEKT/templates/teacher.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -122,6 +122,7 @@ class StudentAttempt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.Float, nullable=True)
 
+
     student_id = db.Column(db.Integer, db.ForeignKey('user_info.id'), nullable=False)
     student = db.relationship('UserInfo', backref='attempts')
 
