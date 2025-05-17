@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, request, redirect, session
-from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption
+from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt
 from datetime import datetime
 import os
 
@@ -62,16 +62,166 @@ def register():
     return render_template('auth.html', tab=tab)
 
 
-@app.route('/student') #jesli rola student to zostaje na stronie student
+@app.route('/student')
 def student():
     if session.get('role') != 'student':
         return redirect(url_for('register', tab='login'))
-    elif 'user_id' in session:
-        name = session.get('user_name')
-        role = session.get('role')
-        return render_template('student.html', name=name, role=role)
+
+    if 'user_id' in session:
+        user_id = session['user_id']
+        name = session['user_name']
+        role = session['role']
+
+        grades = Grade.query.filter_by(user_id=user_id).all()
+        dist = {str(val): sum(1 for g in grades if g.value == val) for val in [5, 4, 3, 2]}
+        average = round(sum(g.value for g in grades) / len(grades), 2) if grades else 0
+
+        subject_count = Subject.query.count()
+        subjects = Subject.query.all()
+
+        taken_test_ids = set(g.attempt_id for g in grades if g.attempt_id is not None)
+        all_test_ids = set(t.id for t in Test.query.all())
+        test_count = len(all_test_ids - taken_test_ids)
+
+        # Last attempts data
+        attempts = StudentAttempt.query.filter_by(student_id=user_id).order_by(StudentAttempt.id.desc()).limit(5).all()
+        last_attempts = [
+            {
+                "attempt_id": a.id,
+                "test_title": a.test.title,
+                "subject_name": a.test.subject.subject_name,
+                "score": int(a.score),
+                "date": a.test.description[:10]
+            }
+            for a in attempts
+        ]
+
+        return render_template("student.html", name=name, role=role, grades=grades,
+                               dist=dist, average=average,
+                               subject_count=subject_count, subjects=subjects,
+                               test_count=test_count, last_attempts=last_attempts)
+
     return redirect(url_for('register', tab='login'))
 
+@app.route('/student/tests')
+def available_tests():
+    if session.get('role') != 'student':
+        return redirect(url_for('register', tab='login'))
+
+    tests = Test.query.all()  # Optionally filter out already taken ones later
+    return render_template('student_tests.html', tests=tests)
+
+@app.route('/student/test/<int:test_id>', methods=['GET', 'POST'])
+def student_test(test_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('register', tab='login'))
+
+    if request.method == 'GET':
+        session.pop('current_question', None)
+        session.pop('answers', None)
+
+    test = Test.query.get_or_404(test_id)
+    test_questions = TestQuestion.query.filter_by(test_id=test_id).all()
+    question_map = {tq.question_id: tq.points for tq in test_questions}
+    questions = Question.query.filter(Question.id.in_(question_map.keys())).all()
+
+    if 'answers' not in session:
+        session['answers'] = {}
+    answers = session['answers']
+
+    current_question = session.get('current_question', 0)
+
+    if request.method == 'POST':
+        selected_option = request.form.get(f'question_{questions[current_question].id}')
+        if selected_option:
+            answers[str(questions[current_question].id)] = int(selected_option)
+            session['answers'] = answers
+
+        action = request.form.get('action')
+        if action == 'next' and current_question < len(questions) - 1:
+            current_question += 1
+        elif action == 'prev' and current_question > 0:
+            current_question -= 1
+        elif action == 'submit':
+            score = 0
+            total = 0
+            results = []
+
+            for q in questions:
+                correct_option = next((opt for opt in q.answer_options if opt.is_correct), None)
+                is_correct = str(q.id) in answers and answers[str(q.id)] == correct_option.id if correct_option else False
+                points = question_map.get(q.id, 1)
+                if is_correct:
+                    score += points
+                total += points
+                results.append({"question": q, "correct": is_correct})
+
+            new_attempt = StudentAttempt(
+                student_id=session['user_id'],
+                test_id=test.id,
+                score=score
+            )
+            db.session.add(new_attempt)
+            db.session.commit()
+
+            # Assign grade based on score
+            percentage = (score / total) * 100 if total > 0 else 0
+            if percentage >= 90:
+                grade_value = 5
+            elif percentage >= 75:
+                grade_value = 4
+            elif percentage >= 50:
+                grade_value = 3
+            else:
+                grade_value = 2
+
+            new_grade = Grade(
+                value=grade_value,
+                user_id=session['user_id'],
+                subject_id=test.subject_id,
+                attempt_id=new_attempt.id
+            )
+            db.session.add(new_grade)
+            db.session.commit()
+
+            session.pop('current_question', None)
+            session.pop('answers', None)
+
+            return redirect(url_for('student_test_result', attempt_id=new_attempt.id))
+
+        session['current_question'] = current_question
+
+    return render_template(
+        'student_take_test.html',
+        test=test,
+        questions=questions,
+        current_question=current_question
+    )
+
+@app.route('/student/test/result/<int:attempt_id>')
+def student_test_result(attempt_id):
+    attempt = StudentAttempt.query.get_or_404(attempt_id)
+    if session.get('role') != 'student' or attempt.student_id != session.get('user_id'):
+        return redirect(url_for('register', tab='login'))
+
+    test = attempt.test
+    test_questions = TestQuestion.query.filter_by(test_id=test.id).all()
+    question_map = {tq.question_id: tq.points for tq in test_questions}
+    questions = Question.query.filter(Question.id.in_(question_map.keys())).all()
+
+    results = []
+    for q in questions:
+        correct_option = next((opt for opt in q.answer_options if opt.is_correct), None)
+        is_correct = True  # Placeholder or adjust if answer data available
+        results.append({"question": q, "correct": is_correct})
+
+    return render_template(
+        'student_test_result.html',
+        test=test,
+        score=int(attempt.score),
+        total=sum(question_map.values()),
+        results=results
+    )
 
 @app.route('/teacher') #jesli rola teacher to zostaje na stronie teacher
 def teacher():

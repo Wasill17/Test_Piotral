@@ -5,7 +5,7 @@ function initCharts() {
 			labels: ["5", "4", "3", "2"],
 			datasets: [
 				{
-					data: [3, 2, 1, 0],
+					data: [gradeDist["5"], gradeDist["4"], gradeDist["3"], gradeDist["2"]],
 					backgroundColor: ["#4bc0c0", "#36a2eb", "#ffcd56", "#ff6384"],
 				},
 			],
