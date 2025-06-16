@@ -41,6 +41,8 @@
           </li>
         {% endfor %}
       </ul>
+          <a href="{{ url_for('remove_question_from_test', test_id=test.id, question_id=tq.question.id) }}">Usuń pytanie</a>
+
     </div>
   {% else %}
     <p>Brak przypisanych pytań.</p>
@@ -48,7 +50,7 @@
 
   <hr>
 
-  <h2>Dodaj pytanie do testu</h2>
+  <!-- <h2>Dodaj pytanie do testu</h2>
   <form method="post" action="{{ url_for('add_question_to_test', test_id=test.id) }}">
     <label>ID pytania:</label>
     <input type="number" name="question_id" required>
@@ -57,7 +59,7 @@
     <input type="number" name="points" min="1" required>
 
     <button type="submit">Dodaj</button>
-  </form>
+  </form> -->
 
   <br>
 <a href="{{ url_for('add_question_to_test', test_id=test.id) }}">Dodaj pytanie</a>

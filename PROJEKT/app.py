@@ -406,33 +406,57 @@ def delete_test(test_id):
     return redirect(url_for('teacher_tests'))
 
 
-@app.route('/teacher/tests/<int:test_id>/add_question', methods=['GET', 'POST'])  #dodaj pytanie
+@app.route('/teacher/tests/<int:test_id>/add_question', methods=['GET', 'POST'])
+
 def add_question_to_test(test_id):
     test = Test.query.get_or_404(test_id)
+    existing_questions = Question.query.all() 
 
-    if request.method == 'POST': # jeśli nauczyciel wysłał formularz z pytaniem
-        text = request.form['question_text']
-        points = int(request.form['points'])
+    if request.method == 'POST':
+        form = request.form
 
-        new_question = Question(text=text)
-        db.session.add(new_question)
-        db.session.flush()  # Pobierz ID pytania przed commit
+        # 🔹 Dodanie istniejącego pytania po ID
+        if 'question_id' in form and 'points' in form and 'question_text' not in form:
+            try:
+                question_id = int(form['question_id'])
+                points = int(form['points'])
+                existing_question = Question.query.get(question_id)
 
-        # Dodanie odpowiedzi
-        for i in range(1, 5):
-            ans_text = request.form.get(f'answer_{i}')
-            is_correct = f'is_correct_{i}' in request.form
-            if ans_text:
-                option = AnswerOption(text=ans_text, is_correct=is_correct, question=new_question)
-                db.session.add(option)
+                if existing_question:
+                    tq = TestQuestion(test_id=test.id, question_id=question_id, points=points)
+                    db.session.add(tq)
+                    db.session.commit()
+                    return redirect(url_for('edit_test', test_id=test.id))
+                else:
+                    return "Pytanie o podanym ID nie istnieje.", 404
+            except ValueError:
+                return "Błąd danych wejściowych.", 400
 
-        # Powiązanie pytania z testem
-        tq = TestQuestion(test_id=test.id, question_id=new_question.id, points=points)
-        db.session.add(tq)
-        db.session.commit()
-        return redirect(url_for('edit_test', test_id=test.id))
+        # 🔹 Dodanie nowego pytania i jego odpowiedzi
+        if 'question_text' in form:
+            text = form['question_text']
+            points = int(form['points'])
 
-    return render_template('add_question.html', test=test)
+            new_question = Question(text=text)
+            db.session.add(new_question)
+            db.session.flush()
+
+            for i in range(1, 5):
+                ans_text = form.get(f'answer_{i}')
+                is_correct = f'is_correct_{i}' in form
+                if ans_text:
+                    option = AnswerOption(text=ans_text, is_correct=is_correct, question=new_question)
+                    db.session.add(option)
+
+            tq = TestQuestion(test_id=test.id, question_id=new_question.id, points=points)
+            db.session.add(tq)
+            db.session.commit()
+            return redirect(url_for('edit_test', test_id=test.id))
+        
+        existing_questions = Question.query.order_by(Question.id.desc()).limit(10).all()
+
+
+    return render_template('add_question.html', test=test, existing_questions=existing_questions)
 
 
 @app.route('/teacher/questions/<int:question_id>/edit', methods=['GET', 'POST']) #edytuj pytanie
@@ -456,14 +480,18 @@ def edit_question(question_id):
 
 @app.route('/teacher/tests/<int:test_id>/remove_question/<int:question_id>') #usun pytanie
 def remove_question_from_test(test_id, question_id):
-    TestQuestion.query.filter_by(test_id=test_id, question_id=question_id).delete()
-    db.session.commit()
+    tq = TestQuestion.query.filter_by(test_id=test_id, question_id=question_id).first()
+    if tq:
+        db.session.delete(tq)
+        db.session.commit()
+
     return redirect(url_for('edit_test', test_id=test_id))
 
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+
 
         if Subject.query.count() == 0:
             default_subjects = [
