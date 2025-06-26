@@ -18,7 +18,7 @@
       <label>Odpowiedź:</label>
       <input type="text" name="option_{{ opt.id }}" value="{{ opt.text }}">
       <label>
-        <input type="checkbox" name="is_correct_{{ opt.id }}" {% if opt.is_correct %}checked{% endif %}>
+        <input type="radio" name="correct_option" value="{{ opt.id }}" {% if opt.is_correct %}checked{% endif %}>
         Poprawna
       </label>
     </div>

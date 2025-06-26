@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, request, redirect, session
-from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt, AttemptAnswer
+from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt, AttemptAnswer, test_groups
 from datetime import datetime
 import os
 
@@ -72,6 +72,8 @@ def student():
         name = session['user_name']
         role = session['role']
 
+        student_user = UserInfo.query.get(user_id)
+
         grades = Grade.query.filter_by(user_id=user_id).all()
         dist = {str(val): sum(1 for g in grades if g.value == val) for val in [5, 4, 3, 2]}
         average = round(sum(g.value for g in grades) / len(grades), 2) if grades else 0
@@ -79,9 +81,22 @@ def student():
         subject_count = Subject.query.count()
         subjects = Subject.query.all()
 
+        # Pobierz ID grup studenta
+        group_ids = [g.id for g in student_user.groups]
+
+        # Testy przypisane do grup
+        allowed_tests = Test.query \
+            .join(test_groups) \
+            .filter(test_groups.c.group_id.in_(group_ids)) \
+            .all()
+
+        # ID testów, które już podjął
         taken_test_ids = set(g.attempt_id for g in grades if g.attempt_id is not None)
-        all_test_ids = set(t.id for t in Test.query.all())
-        test_count = len(all_test_ids - taken_test_ids)
+
+        # Filtrowanie tylko tych dostępnych z przypisanych
+        available_tests = [t for t in allowed_tests if t.id not in taken_test_ids]
+        test_count = len(available_tests)
+
 
         # Last attempts data
         attempts = StudentAttempt.query.filter_by(student_id=user_id).order_by(StudentAttempt.id.desc()).limit(5).all()
@@ -103,16 +118,30 @@ def student():
 
     return redirect(url_for('register', tab='login'))
 
+
 @app.route('/student/tests')
 def available_tests():
     if session.get('role') != 'student':
         return redirect(url_for('register', tab='login'))
 
     user_id = session['user_id']
+    student_user = UserInfo.query.get(user_id)
+
     taken = db.session.query(StudentAttempt.test_id).filter_by(student_id=user_id).subquery()
-    tests = Test.query.filter(~Test.id.in_(taken)).all()
+
+    group_ids = [g.id for g in student_user.groups]
+
+    if not group_ids:
+        tests = []
+    else:
+        tests = Test.query\
+            .join(test_groups)\
+            .filter(test_groups.c.group_id.in_(group_ids))\
+            .filter(~Test.id.in_(taken))\
+            .all()
 
     return render_template('student_tests.html', tests=tests)
+
 
 @app.route('/student/test/<int:test_id>', methods=['GET', 'POST'])
 def student_test(test_id):
@@ -213,6 +242,7 @@ def student_test(test_id):
         current_question=current_question
     )
 
+
 @app.route('/student/test/result/<int:attempt_id>')
 def student_test_result(attempt_id):
     attempt = StudentAttempt.query.get_or_404(attempt_id)
@@ -248,6 +278,7 @@ def student_test_result(attempt_id):
         results=results
     )
 
+
 @app.route('/teacher') #jesli rola teacher to zostaje na stronie teacher
 def teacher():
     if session.get('role') != 'nauczyciel':
@@ -257,6 +288,7 @@ def teacher():
         role = session.get('role')
         return render_template('teacher.html', name=name, role=role)
     return redirect(url_for('register', tab='login'))
+
 
 @app.route('/teacher/studentlist_teacher')
 def studentlist_teacher():
@@ -300,10 +332,6 @@ def grades():
             for student in group.students:
                 student.grades = Grade.query.filter_by(user_id=student.id).all()
         return render_template('grades.html', groups=groups)
-
-
-
-
 
 
 @app.route('/groups_teacher', methods=['GET', 'POST']) #tworzenie grupy, dodawanie studentów i ich usuwanie
@@ -414,10 +442,15 @@ def edit_test(test_id):
         test.title = request.form['title']
         test.description = request.form['description']
         test.subject_id = int(request.form['subject_id'])
+
+        selected_group_ids = request.form.getlist('groups')  # z formularza
+        test.groups = Group.query.filter(Group.id.in_(selected_group_ids)).all()
+
         db.session.commit()
         return redirect(url_for('teacher_tests'))
 
-    return render_template('edit_test.html', test=test, subjects=subjects)
+    groups = Group.query.filter_by(teacher_id=session['user_id']).all()
+    return render_template('edit_test.html', test=test, subjects=subjects, groups=groups)
 
 
 @app.route('/teacher/tests/<int:test_id>/delete') #usun
@@ -462,13 +495,21 @@ def add_question_to_test(test_id):
             text = form['question_text']
             points = int(form['points'])
 
+            correct_index = form.get("is_correct")
+            if correct_index is None or not correct_index.isdigit() or int(correct_index) not in range(1, 5):
+                return "❌ Musisz zaznaczyć dokładnie jedną poprawną odpowiedź.", 400
+            correct_index = int(correct_index)
+
+
             new_question = Question(text=text)
             db.session.add(new_question)
             db.session.flush()
 
+            correct_index = int(form.get("is_correct") or -1)
             for i in range(1, 5):
                 ans_text = form.get(f'answer_{i}')
-                is_correct = f'is_correct_{i}' in form
+                is_correct = (i == correct_index)
+
                 if ans_text:
                     option = AnswerOption(text=ans_text, is_correct=is_correct, question=new_question)
                     db.session.add(option)

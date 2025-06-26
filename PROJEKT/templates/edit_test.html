@@ -23,6 +23,17 @@
       {% endfor %}
     </select><br><br>
 
+    <label>Grupy przypisane do testu:</label><br>
+    {% for group in groups %}
+      <label>
+        <input type="checkbox" name="groups" value="{{ group.id }}"
+              {% if group in test.groups %}checked{% endif %}>
+        {{ group.name }}
+      </label><br>
+    {% endfor %}
+    <br>
+
+
     <button type="submit">Zapisz zmiany</button>
   </form>
 

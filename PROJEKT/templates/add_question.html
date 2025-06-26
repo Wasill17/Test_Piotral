@@ -21,7 +21,7 @@
       <label>Odpowiedź {{ i }}:</label>
       <input type="text" name="answer_{{ i }}">
       <label>
-        <input type="checkbox" name="is_correct_{{ i }}"> Poprawna
+        <input type="radio" name="is_correct" value="{{ i }}"> Poprawna
       </label>
     </div>
   {% endfor %}
