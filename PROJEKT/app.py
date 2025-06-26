@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, request, redirect, session
-from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt
+from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt, AttemptAnswer
 from datetime import datetime
 import os
 
@@ -108,7 +108,10 @@ def available_tests():
     if session.get('role') != 'student':
         return redirect(url_for('register', tab='login'))
 
-    tests = Test.query.all()  # Optionally filter out already taken ones later
+    user_id = session['user_id']
+    taken = db.session.query(StudentAttempt.test_id).filter_by(student_id=user_id).subquery()
+    tests = Test.query.filter(~Test.id.in_(taken)).all()
+
     return render_template('student_tests.html', tests=tests)
 
 @app.route('/student/test/<int:test_id>', methods=['GET', 'POST'])
@@ -164,6 +167,16 @@ def student_test(test_id):
             db.session.add(new_attempt)
             db.session.commit()
 
+                        # Zapisz odpowiedzi ucznia do AttemptAnswer
+            for qid_str, selected_option_id in answers.items():
+                new_answer = AttemptAnswer(
+                    attempt_id=new_attempt.id,
+                    answer_option_id=selected_option_id
+                )
+                db.session.add(new_answer)
+            db.session.commit()
+
+
             # Assign grade based on score
             percentage = (score / total) * 100 if total > 0 else 0
             if percentage >= 90:
@@ -183,6 +196,8 @@ def student_test(test_id):
             )
             db.session.add(new_grade)
             db.session.commit()
+
+            
 
             session.pop('current_question', None)
             session.pop('answers', None)
@@ -210,10 +225,20 @@ def student_test_result(attempt_id):
     questions = Question.query.filter(Question.id.in_(question_map.keys())).all()
 
     results = []
+    attempt_answers = {a.answer_option.question_id: a.answer_option_id for a in attempt.answers}
+
     for q in questions:
         correct_option = next((opt for opt in q.answer_options if opt.is_correct), None)
-        is_correct = True  # Placeholder or adjust if answer data available
-        results.append({"question": q, "correct": is_correct})
+        chosen_id = attempt_answers.get(q.id)
+        is_correct = (chosen_id == correct_option.id) if correct_option else False
+        results.append({
+            "question": q,
+            "correct": is_correct,
+            "selected_option": chosen_id,
+            "correct_option": correct_option.id if correct_option else None
+        })
+
+
 
     return render_template(
         'student_test_result.html',
