@@ -157,6 +157,10 @@ def student_test(test_id):
     question_map = {tq.question_id: tq.points for tq in test_questions}
     questions = Question.query.filter(Question.id.in_(question_map.keys())).all()
 
+    if not questions:
+        return render_template('student_take_test.html', test=test, questions=[], current_question=0, empty=True)
+
+
     if 'answers' not in session:
         session['answers'] = {}
     answers = session['answers']
@@ -384,6 +388,25 @@ def groups_teacher():
         selected_student_id=selected_student_id
     )
 
+@app.route('/teacher/groups/<int:group_id>/delete', methods=['POST'])
+def delete_group(group_id):
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
+
+    group = Group.query.filter_by(id=group_id, teacher_id=session['user_id']).first()
+    if group:
+        # Usuń powiązania z uczniami
+        group.students.clear()
+
+        # Usuń powiązania z testami (test_groups)
+        group.tests.clear()
+
+        db.session.delete(group)
+        db.session.commit()
+
+    return redirect(url_for('groups_teacher'))
+
+
 
 @app.route('/teacher/tests') #tworzenie testów, edycja i usuwanie
 def teacher_tests():
@@ -497,7 +520,7 @@ def add_question_to_test(test_id):
 
             correct_index = form.get("is_correct")
             if correct_index is None or not correct_index.isdigit() or int(correct_index) not in range(1, 5):
-                return "❌ Musisz zaznaczyć dokładnie jedną poprawną odpowiedź.", 400
+                return "Musisz zaznaczyć dokładnie jedną poprawną odpowiedź.", 400
             correct_index = int(correct_index)
 
 
@@ -553,6 +576,12 @@ def remove_question_from_test(test_id, question_id):
 
     return redirect(url_for('edit_test', test_id=test_id))
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -569,6 +598,6 @@ if __name__ == "__main__":
             ]
             db.session.bulk_save_objects(default_subjects)
             db.session.commit()
-            print("✔️ Dodano domyślne przedmioty do bazy danych.")
+            print("Dodano domyślne przedmioty do bazy danych.")
 
     app.run(debug=True)

@@ -11,11 +11,16 @@
         <h1 class="mb-4 text-center">{{ test.title }}</h1>
         <p class="text-center text-muted mb-5">{{ test.description }}</p>
 
-        <form method="POST">
+        {% if empty %}
+            <div class="alert alert-warning text-center" role="alert">
+                ⚠️ Ten test nie zawiera żadnych pytań.
+            </div>
+        {% else %}
             {% set q = questions[current_question] %}
-            <div class="mb-5">
-                <h4 class="mb-3">Pytanie {{ current_question + 1 }} z {{ questions|length }}: {{ q.text }}</h4>
-                <div class="ps-3">
+            <form method="POST">
+                <div class="mb-5">
+                    <h4 class="mb-3">Pytanie {{ current_question + 1 }} z {{ questions|length }}: {{ q.text }}</h4>
+                    <div class="ps-3">
                     {% for option in q.answer_options %}
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="option_{{ option.id }}" value="{{ option.id }}">
@@ -43,4 +48,5 @@
         </form>
     </div>
 </div>
+{% endif %}
 {% endblock %}
