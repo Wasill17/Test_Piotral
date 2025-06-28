@@ -27,11 +27,13 @@
                     <a class="nav-link text-white" href="/student/tests"><i class="bi bi-calculator me-2"></i>Testy</a>
                 </li>
                 <li class="nav-item mb-1">
-                    <a class="nav-link text-white" href="#"><i class="bi bi-book me-2"></i>Przedmioty</a>
+                    <a class="nav-link text-white" href="{{ url_for('student_subjects') }}"><i class="bi bi-book me-2"></i>Przedmioty</a>
                 </li>
+                <!--
                 <li class="nav-item mb-1">
                     <a class="nav-link text-white" href="#"><i class="bi bi-globe2 me-2"></i>Oceny</a>
                 </li>
+                -->
             </ul>
         </div>
         <div class="flex-grow-1"></div>
@@ -103,7 +105,7 @@
                                     <tr>
                                         <td>{{ a.test_title }}</td>
                                         <td>{{ a.subject_name }}</td>
-                                        <td>{{ a.date }}</td>
+                                        <td>{{ a.description }}</td> <!-- przedtem bylo {{ a.date }} -->
                                         <td><span class="badge bg-primary">{{ a.score }}</span></td>
                                         <td><a href="{{ url_for('student_test_result', attempt_id=a.attempt_id) }}" class="btn btn-sm btn-outline-primary">Zobacz</a></td>
                                     </tr>

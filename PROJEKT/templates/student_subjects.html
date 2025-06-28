@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Moje Przedmioty i Oceny{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+  <h1 class="text-center mb-4">Moje przedmioty i oceny</h1>
+
+  {% if subjects %}
+    {% for subj in subjects %}
+      <div class="mb-4">
+        <h2 class="h4">{{ subj.subject_name }}</h2>
+        {% set subj_grades = grades_by_subject.get(subj.id, []) %}
+        {% if subj_grades %}
+          <ul class="list-group">
+            {% for g in subj_grades %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Ocena: <strong>{{ g.value }}</strong></span>
+                <small class="text-muted">{{ g.added_date.strftime('%Y-%m-%d') }}</small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Brak ocen w tym przedmiocie.</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-center">Nie masz przypisanych żadnych przedmiotów.</p>
+  {% endif %}
+</div>
+{% endblock %}
+

@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, request, redirect, session
 from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt, AttemptAnswer, test_groups
 from datetime import datetime
 import os
+from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = 'tajny-klucz-zadymeczka'
@@ -106,7 +107,8 @@ def student():
                 "test_title": a.test.title,
                 "subject_name": a.test.subject.subject_name,
                 "score": int(a.score),
-                "date": a.test.description[:10]
+                # "date": a.test.description[:10] - to dawalo tylko 10 pierwszych znakow w opisie na stronie glownej ucznia
+                "description": a.test.description
             }
             for a in attempts
         ]
@@ -581,6 +583,41 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+@app.route('/student/subjects')
+def student_subjects():
+    if session.get('role') != 'student':
+        return redirect(url_for('register', tab='login'))
+
+    user = UserInfo.query.get(session['user_id'])
+
+    # 1) Pobierz testy przypisane do grup
+    group_ids = [g.id for g in user.groups]
+    tests = Test.query \
+        .join(test_groups) \
+        .filter(test_groups.c.group_id.in_(group_ids)) \
+        .all()
+
+    # 2) Zbiór unikalnych przedmiotów
+    subjects = Subject.query.order_by(Subject.subject_name).all()
+
+    # 3) Pobierz wszystkie oceny ucznia, posortowane malejąco wg daty
+    grades = Grade.query \
+        .filter_by(user_id=user.id) \
+        .order_by(Grade.added_date.desc()) \
+        .all()
+
+    # 4) Pogru­puj oceny po przedmiocie
+    grades_by_subject = defaultdict(list)
+    for g in grades:
+        grades_by_subject[g.subject_id].append(g)
+
+    return render_template(
+        'student_subjects.html',
+        subjects=subjects,
+        grades_by_subject=grades_by_subject
+    )
+
+
 
 
 if __name__ == "__main__":
@@ -594,7 +631,7 @@ if __name__ == "__main__":
                 Subject(subject_name='Fizyka'),
                 Subject(subject_name='Biologia'),
                 Subject(subject_name='Informatyka'),
-                Subject(subject_name='Chemia')
+                Subject(subject_name='Chemia'),
             ]
             db.session.bulk_save_objects(default_subjects)
             db.session.commit()
