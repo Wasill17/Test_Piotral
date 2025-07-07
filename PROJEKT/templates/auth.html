@@ -4,7 +4,15 @@
 {% block head %}
     <title>Logowanie / Rejestracja</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}" />
-    <script src="../static/js/formTabs.js" defer></script>
+    <script src="{{ url_for('static', filename='js/formTabs.js') }}" defer></script>
+    <style>
+      .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.95em;
+      }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -46,13 +54,11 @@
         </div>
 
         <button type="submit">Zarejestruj się</button>
-    </form>
 
-    {% if error and tab == 'register' %}
-    <div class="error-message" style="color: red; text-align: center; margin-top: 30px;">
-        {{ error }}
-    </div>
-    {% endif %}
+        {% if error and tab == 'register' %}
+        <div class="error-message">Wprowadzono błędne dane: {{ error }}</div>
+        {% endif %}
+    </form>
 
     <form id="loginForm" method="POST" action="{{ url_for('register', tab='login') }}" {% if tab != 'login' %}class="hidden"{% endif %}>
         <div class="form-content">
@@ -68,7 +74,10 @@
         </div>
       
         <button type="submit">Zaloguj się</button>
-      </form>
-      
+
+        {% if error and tab == 'login' %}
+        <div class="error-message">Wprowadzono błędne dane</div>
+        {% endif %}
+    </form>
 </div>
 {% endblock %}

@@ -1,7 +1,8 @@
 from flask import Flask, render_template, url_for, request, redirect, session
-from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption
+from models import db, UserInfo, Group, GroupStudent, Test, Subject, Grade, Question, TestQuestion, AnswerOption, StudentAttempt, AttemptAnswer, test_groups
 from datetime import datetime
 import os
+from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = 'tajny-klucz-zadymeczka'
@@ -62,15 +63,226 @@ def register():
     return render_template('auth.html', tab=tab)
 
 
-@app.route('/student') #jesli rola student to zostaje na stronie student
+@app.route('/student')
 def student():
     if session.get('role') != 'student':
         return redirect(url_for('register', tab='login'))
-    elif 'user_id' in session:
-        name = session.get('user_name')
-        role = session.get('role')
-        return render_template('student.html', name=name, role=role)
+
+    if 'user_id' in session:
+        user_id = session['user_id']
+        name = session['user_name']
+        role = session['role']
+
+        student_user = UserInfo.query.get(user_id)
+
+        grades = Grade.query.filter_by(user_id=user_id).all()
+        dist = {str(val): sum(1 for g in grades if g.value == val) for val in [5, 4, 3, 2]}
+        average = round(sum(g.value for g in grades) / len(grades), 2) if grades else 0
+
+        subject_count = Subject.query.count()
+        subjects = Subject.query.all()
+
+        # Pobierz ID grup studenta
+        group_ids = [g.id for g in student_user.groups]
+
+        # Testy przypisane do grup
+        allowed_tests = Test.query \
+            .join(test_groups) \
+            .filter(test_groups.c.group_id.in_(group_ids)) \
+            .all()
+
+        # ID testów, które już podjął
+        taken_test_ids = set(g.attempt_id for g in grades if g.attempt_id is not None)
+
+        # Filtrowanie tylko tych dostępnych z przypisanych
+        available_tests = [t for t in allowed_tests if t.id not in taken_test_ids]
+        test_count = len(available_tests)
+
+
+        # Last attempts data
+        attempts = StudentAttempt.query.filter_by(student_id=user_id).order_by(StudentAttempt.id.desc()).limit(5).all()
+        last_attempts = [
+            {
+                "attempt_id": a.id,
+                "test_title": a.test.title,
+                "subject_name": a.test.subject.subject_name,
+                "score": int(a.score),
+                # "date": a.test.description[:10] - to dawalo tylko 10 pierwszych znakow w opisie na stronie glownej ucznia
+                "description": a.test.description
+            }
+            for a in attempts
+        ]
+
+        return render_template("student.html", name=name, role=role, grades=grades,
+                               dist=dist, average=average,
+                               subject_count=subject_count, subjects=subjects,
+                               test_count=test_count, last_attempts=last_attempts)
+
     return redirect(url_for('register', tab='login'))
+
+
+@app.route('/student/tests')
+def available_tests():
+    if session.get('role') != 'student':
+        return redirect(url_for('register', tab='login'))
+
+    user_id = session['user_id']
+    student_user = UserInfo.query.get(user_id)
+
+    taken = db.session.query(StudentAttempt.test_id).filter_by(student_id=user_id).subquery()
+
+    group_ids = [g.id for g in student_user.groups]
+
+    if not group_ids:
+        tests = []
+    else:
+        tests = Test.query\
+            .join(test_groups)\
+            .filter(test_groups.c.group_id.in_(group_ids))\
+            .filter(~Test.id.in_(taken))\
+            .all()
+
+    return render_template('student_tests.html', tests=tests)
+
+
+@app.route('/student/test/<int:test_id>', methods=['GET', 'POST'])
+def student_test(test_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('register', tab='login'))
+
+    if request.method == 'GET':
+        session.pop('current_question', None)
+        session.pop('answers', None)
+
+    test = Test.query.get_or_404(test_id)
+    test_questions = TestQuestion.query.filter_by(test_id=test_id).all()
+    question_map = {tq.question_id: tq.points for tq in test_questions}
+    questions = Question.query.filter(Question.id.in_(question_map.keys())).all()
+
+    if not questions:
+        return render_template('student_take_test.html', test=test, questions=[], current_question=0, empty=True)
+
+
+    if 'answers' not in session:
+        session['answers'] = {}
+    answers = session['answers']
+
+    current_question = session.get('current_question', 0)
+
+    if request.method == 'POST':
+        selected_option = request.form.get(f'question_{questions[current_question].id}')
+        if selected_option:
+            answers[str(questions[current_question].id)] = int(selected_option)
+            session['answers'] = answers
+
+        action = request.form.get('action')
+        if action == 'next' and current_question < len(questions) - 1:
+            current_question += 1
+        elif action == 'prev' and current_question > 0:
+            current_question -= 1
+        elif action == 'submit':
+            score = 0
+            total = 0
+            results = []
+
+            for q in questions:
+                correct_option = next((opt for opt in q.answer_options if opt.is_correct), None)
+                is_correct = str(q.id) in answers and answers[str(q.id)] == correct_option.id if correct_option else False
+                points = question_map.get(q.id, 1)
+                if is_correct:
+                    score += points
+                total += points
+                results.append({"question": q, "correct": is_correct})
+
+            new_attempt = StudentAttempt(
+                student_id=session['user_id'],
+                test_id=test.id,
+                score=score
+            )
+            db.session.add(new_attempt)
+            db.session.commit()
+
+                        # Zapisz odpowiedzi ucznia do AttemptAnswer
+            for qid_str, selected_option_id in answers.items():
+                new_answer = AttemptAnswer(
+                    attempt_id=new_attempt.id,
+                    answer_option_id=selected_option_id
+                )
+                db.session.add(new_answer)
+            db.session.commit()
+
+
+            # Assign grade based on score
+            percentage = (score / total) * 100 if total > 0 else 0
+            if percentage >= 90:
+                grade_value = 5
+            elif percentage >= 75:
+                grade_value = 4
+            elif percentage >= 50:
+                grade_value = 3
+            else:
+                grade_value = 2
+
+            new_grade = Grade(
+                value=grade_value,
+                user_id=session['user_id'],
+                subject_id=test.subject_id,
+                attempt_id=new_attempt.id
+            )
+            db.session.add(new_grade)
+            db.session.commit()
+
+            
+
+            session.pop('current_question', None)
+            session.pop('answers', None)
+
+            return redirect(url_for('student_test_result', attempt_id=new_attempt.id))
+
+        session['current_question'] = current_question
+
+    return render_template(
+        'student_take_test.html',
+        test=test,
+        questions=questions,
+        current_question=current_question
+    )
+
+
+@app.route('/student/test/result/<int:attempt_id>')
+def student_test_result(attempt_id):
+    attempt = StudentAttempt.query.get_or_404(attempt_id)
+    if session.get('role') != 'student' or attempt.student_id != session.get('user_id'):
+        return redirect(url_for('register', tab='login'))
+
+    test = attempt.test
+    test_questions = TestQuestion.query.filter_by(test_id=test.id).all()
+    question_map = {tq.question_id: tq.points for tq in test_questions}
+    questions = Question.query.filter(Question.id.in_(question_map.keys())).all()
+
+    results = []
+    attempt_answers = {a.answer_option.question_id: a.answer_option_id for a in attempt.answers}
+
+    for q in questions:
+        correct_option = next((opt for opt in q.answer_options if opt.is_correct), None)
+        chosen_id = attempt_answers.get(q.id)
+        is_correct = (chosen_id == correct_option.id) if correct_option else False
+        results.append({
+            "question": q,
+            "correct": is_correct,
+            "selected_option": chosen_id,
+            "correct_option": correct_option.id if correct_option else None
+        })
+
+
+
+    return render_template(
+        'student_test_result.html',
+        test=test,
+        score=int(attempt.score),
+        total=sum(question_map.values()),
+        results=results
+    )
 
 
 @app.route('/teacher') #jesli rola teacher to zostaje na stronie teacher
@@ -84,8 +296,19 @@ def teacher():
     return redirect(url_for('register', tab='login'))
 
 
+@app.route('/teacher/studentlist_teacher')
+def studentlist_teacher():
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
+    # pobierz listę wszystkich studentów lub tych w grupach nauczyciela
+    students = UserInfo.query.filter_by(role='student').all()
+    return render_template('studentlist_teacher.html', students=students)
+
+
 @app.route('/grades', methods=['POST', 'GET']) #narazie nie ma nic z tym po zmianie bazy na stronie
 def grades():
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
     if request.method == 'POST':
         try:
             grade_content = int(request.form['grade'])
@@ -107,8 +330,14 @@ def grades():
         except Exception as e:
             return f"Wystąpił błąd: {e}"
 
+
     else:
-        return render_template('grades.html')
+        teacher_id = session.get('user_id')
+        groups = Group.query.filter_by(teacher_id=teacher_id).all()
+        for group in groups:
+            for student in group.students:
+                student.grades = Grade.query.filter_by(user_id=student.id).all()
+        return render_template('grades.html', groups=groups)
 
 
 @app.route('/groups_teacher', methods=['GET', 'POST']) #tworzenie grupy, dodawanie studentów i ich usuwanie
@@ -160,6 +389,25 @@ def groups_teacher():
         selected_group_id=selected_group_id,
         selected_student_id=selected_student_id
     )
+
+@app.route('/teacher/groups/<int:group_id>/delete', methods=['POST'])
+def delete_group(group_id):
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
+
+    group = Group.query.filter_by(id=group_id, teacher_id=session['user_id']).first()
+    if group:
+        # Usuń powiązania z uczniami
+        group.students.clear()
+
+        # Usuń powiązania z testami (test_groups)
+        group.tests.clear()
+
+        db.session.delete(group)
+        db.session.commit()
+
+    return redirect(url_for('groups_teacher'))
+
 
 
 @app.route('/teacher/tests') #tworzenie testów, edycja i usuwanie
@@ -219,10 +467,15 @@ def edit_test(test_id):
         test.title = request.form['title']
         test.description = request.form['description']
         test.subject_id = int(request.form['subject_id'])
+
+        selected_group_ids = request.form.getlist('groups')  # z formularza
+        test.groups = Group.query.filter(Group.id.in_(selected_group_ids)).all()
+
         db.session.commit()
         return redirect(url_for('teacher_tests'))
 
-    return render_template('edit_test.html', test=test, subjects=subjects)
+    groups = Group.query.filter_by(teacher_id=session['user_id']).all()
+    return render_template('edit_test.html', test=test, subjects=subjects, groups=groups)
 
 
 @app.route('/teacher/tests/<int:test_id>/delete') #usun
@@ -231,38 +484,93 @@ def delete_test(test_id):
         return redirect(url_for('register', tab='login'))
 
     test = Test.query.get_or_404(test_id)
+
+    # 1️⃣ Odepnij test od grup
+    test.groups.clear()
+
+    # 2️⃣ Usuń powiązane pytania
+    for tq in list(test.test_questions):
+        db.session.delete(tq)
+
+    # 3️⃣ Usuń próby uczniów i ich odpowiedzi + oceny
+    for attempt in list(test.attempts):
+        # a) odpowiedzi
+        for ans in list(attempt.answers):
+            db.session.delete(ans)
+        # b) oceny
+        grades = Grade.query.filter_by(attempt_id=attempt.id).all()
+        for g in grades:
+            db.session.delete(g)
+        # c) sama próba
+        db.session.delete(attempt)
+
+    # 4️⃣ Wreszcie usuń sam test
     db.session.delete(test)
     db.session.commit()
+
     return redirect(url_for('teacher_tests'))
 
 
-@app.route('/teacher/tests/<int:test_id>/add_question', methods=['GET', 'POST'])  #dodaj pytanie
+
+@app.route('/teacher/tests/<int:test_id>/add_question', methods=['GET', 'POST'])
+
 def add_question_to_test(test_id):
     test = Test.query.get_or_404(test_id)
+    existing_questions = Question.query.all() 
 
-    if request.method == 'POST': # jeśli nauczyciel wysłał formularz z pytaniem
-        text = request.form['question_text']
-        points = int(request.form['points'])
+    if request.method == 'POST':
+        form = request.form
 
-        new_question = Question(text=text)
-        db.session.add(new_question)
-        db.session.flush()  # Pobierz ID pytania przed commit
+        # 🔹 Dodanie istniejącego pytania po ID
+        if 'question_id' in form and 'points' in form and 'question_text' not in form:
+            try:
+                question_id = int(form['question_id'])
+                points = int(form['points'])
+                existing_question = Question.query.get(question_id)
 
-        # Dodanie odpowiedzi
-        for i in range(1, 5):
-            ans_text = request.form.get(f'answer_{i}')
-            is_correct = f'is_correct_{i}' in request.form
-            if ans_text:
-                option = AnswerOption(text=ans_text, is_correct=is_correct, question=new_question)
-                db.session.add(option)
+                if existing_question:
+                    tq = TestQuestion(test_id=test.id, question_id=question_id, points=points)
+                    db.session.add(tq)
+                    db.session.commit()
+                    return redirect(url_for('edit_test', test_id=test.id))
+                else:
+                    return "Pytanie o podanym ID nie istnieje.", 404
+            except ValueError:
+                return "Błąd danych wejściowych.", 400
 
-        # Powiązanie pytania z testem
-        tq = TestQuestion(test_id=test.id, question_id=new_question.id, points=points)
-        db.session.add(tq)
-        db.session.commit()
-        return redirect(url_for('edit_test', test_id=test.id))
+        # 🔹 Dodanie nowego pytania i jego odpowiedzi
+        if 'question_text' in form:
+            text = form['question_text']
+            points = int(form['points'])
 
-    return render_template('add_question.html', test=test)
+            correct_index = form.get("is_correct")
+            if correct_index is None or not correct_index.isdigit() or int(correct_index) not in range(1, 5):
+                return "Musisz zaznaczyć dokładnie jedną poprawną odpowiedź.", 400
+            correct_index = int(correct_index)
+
+
+            new_question = Question(text=text)
+            db.session.add(new_question)
+            db.session.flush()
+
+            correct_index = int(form.get("is_correct") or -1)
+            for i in range(1, 5):
+                ans_text = form.get(f'answer_{i}')
+                is_correct = (i == correct_index)
+
+                if ans_text:
+                    option = AnswerOption(text=ans_text, is_correct=is_correct, question=new_question)
+                    db.session.add(option)
+
+            tq = TestQuestion(test_id=test.id, question_id=new_question.id, points=points)
+            db.session.add(tq)
+            db.session.commit()
+            return redirect(url_for('edit_test', test_id=test.id))
+        
+        existing_questions = Question.query.order_by(Question.id.desc()).limit(10).all()
+
+
+    return render_template('add_question.html', test=test, existing_questions=existing_questions)
 
 
 @app.route('/logout')
@@ -292,14 +600,72 @@ def edit_question(question_id):
 
 @app.route('/teacher/tests/<int:test_id>/remove_question/<int:question_id>') #usun pytanie
 def remove_question_from_test(test_id, question_id):
-    TestQuestion.query.filter_by(test_id=test_id, question_id=question_id).delete()
-    db.session.commit()
+    tq = TestQuestion.query.filter_by(test_id=test_id, question_id=question_id).first()
+    if tq:
+        db.session.delete(tq)
+        db.session.commit()
+
     return redirect(url_for('edit_test', test_id=test_id))
+
+
+@app.route('/teacher/tests/<int:test_id>/results')
+def teacher_test_results(test_id):
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
+
+    test = Test.query.get_or_404(test_id)
+    # Pobierz wszystkie próby uczniów dla tego testu
+    attempts = StudentAttempt.query.filter_by(test_id=test.id).all()
+    return render_template('teacher_test_results.html', test=test, attempts=attempts)
+
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/student/subjects')
+def student_subjects():
+    if session.get('role') != 'student':
+        return redirect(url_for('register', tab='login'))
+
+    user = UserInfo.query.get(session['user_id'])
+
+    # 1) Pobierz testy przypisane do grup
+    group_ids = [g.id for g in user.groups]
+    tests = Test.query \
+        .join(test_groups) \
+        .filter(test_groups.c.group_id.in_(group_ids)) \
+        .all()
+
+    # 2) Zbiór unikalnych przedmiotów
+    subjects = Subject.query.order_by(Subject.subject_name).all()
+
+    # 3) Pobierz wszystkie oceny ucznia, posortowane malejąco wg daty
+    grades = Grade.query \
+        .filter_by(user_id=user.id) \
+        .order_by(Grade.added_date.desc()) \
+        .all()
+
+    # 4) Pogru­puj oceny po przedmiocie
+    grades_by_subject = defaultdict(list)
+    for g in grades:
+        grades_by_subject[g.subject_id].append(g)
+
+    return render_template(
+        'student_subjects.html',
+        subjects=subjects,
+        grades_by_subject=grades_by_subject
+    )
+
+
 
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+
 
         if Subject.query.count() == 0:
             default_subjects = [
@@ -307,10 +673,10 @@ if __name__ == "__main__":
                 Subject(subject_name='Fizyka'),
                 Subject(subject_name='Biologia'),
                 Subject(subject_name='Informatyka'),
-                Subject(subject_name='Chemia')
+                Subject(subject_name='Chemia'),
             ]
             db.session.bulk_save_objects(default_subjects)
             db.session.commit()
-            print("✔️ Dodano domyślne przedmioty do bazy danych.")
+            print("Dodano domyślne przedmioty do bazy danych.")
 
     app.run(debug=True)

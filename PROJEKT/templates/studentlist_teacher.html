@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block head %} <!--Cała ta sekcja może być do zmiany, dałem to tylko poglądowo-->
+  <title>Lista Uczniów</title>
+  <style>
+    /* wyrównanie całej sekcji do środka */
+    .students-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    .students-table {
+      border-collapse: collapse;
+      width: 60%;
+    }
+    .students-table th,
+    .students-table td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .students-table th {
+      background-color: #f5f5f5;
+    }
+    /* styl nagłówka */
+    .students-title {
+      text-align: center;
+      font-size: 2em;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <h1 class="students-title">Lista Uczniów</h1>
+  <div class="students-container">
+    <table class="students-table">
+      <thead>
+        <tr>
+          <th>ID ucznia</th>
+          <th>Imię i nazwisko</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+          <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.first_name }} {{ s.last_name }}</td>
+            <td>{{ s.email }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

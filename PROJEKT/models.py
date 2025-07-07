@@ -58,6 +58,8 @@ class Test(db.Model):
     subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
     subject = db.relationship('Subject', backref='tests')
 
+    groups = db.relationship('Group', secondary='test_groups', backref='tests')
+
     def __repr__(self):
         return f'<Test {self.title}>'
 
@@ -82,6 +84,12 @@ class GroupStudent(db.Model):
 
     def __repr__(self):
         return f'<GroupStudent group_id={self.group_id} user_id={self.user_id}>'
+    
+test_groups = db.Table('test_groups',
+    db.Column('test_id', db.Integer, db.ForeignKey('tests.id'), primary_key=True),
+    db.Column('group_id', db.Integer, db.ForeignKey('groups.id'), primary_key=True)
+)
+
 
 class Question(db.Model):
     __tablename__ = 'questions'
@@ -121,6 +129,7 @@ class StudentAttempt(db.Model):
     __tablename__ = 'student_attempts'
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.Float, nullable=True)
+
 
     student_id = db.Column(db.Integer, db.ForeignKey('user_info.id'), nullable=False)
     student = db.relationship('UserInfo', backref='attempts')
