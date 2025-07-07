@@ -484,9 +484,32 @@ def delete_test(test_id):
         return redirect(url_for('register', tab='login'))
 
     test = Test.query.get_or_404(test_id)
+
+    # 1️⃣ Odepnij test od grup
+    test.groups.clear()
+
+    # 2️⃣ Usuń powiązane pytania
+    for tq in list(test.test_questions):
+        db.session.delete(tq)
+
+    # 3️⃣ Usuń próby uczniów i ich odpowiedzi + oceny
+    for attempt in list(test.attempts):
+        # a) odpowiedzi
+        for ans in list(attempt.answers):
+            db.session.delete(ans)
+        # b) oceny
+        grades = Grade.query.filter_by(attempt_id=attempt.id).all()
+        for g in grades:
+            db.session.delete(g)
+        # c) sama próba
+        db.session.delete(attempt)
+
+    # 4️⃣ Wreszcie usuń sam test
     db.session.delete(test)
     db.session.commit()
+
     return redirect(url_for('teacher_tests'))
+
 
 
 @app.route('/teacher/tests/<int:test_id>/add_question', methods=['GET', 'POST'])
@@ -577,6 +600,19 @@ def remove_question_from_test(test_id, question_id):
         db.session.commit()
 
     return redirect(url_for('edit_test', test_id=test_id))
+
+
+@app.route('/teacher/tests/<int:test_id>/results')
+def teacher_test_results(test_id):
+    if session.get('role') != 'nauczyciel':
+        return redirect(url_for('register', tab='login'))
+
+    test = Test.query.get_or_404(test_id)
+    # Pobierz wszystkie próby uczniów dla tego testu
+    attempts = StudentAttempt.query.filter_by(test_id=test.id).all()
+    return render_template('teacher_test_results.html', test=test, attempts=attempts)
+
+
 
 @app.route('/logout')
 def logout():
