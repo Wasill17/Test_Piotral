@@ -26,6 +26,7 @@ body {
 .tabs {
     display: flex;
     border-bottom: 2px solid rgb(204, 204, 204);
+    margin-bottom: 32px;
 }
 
 .tab {
@@ -42,7 +43,7 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    margin: 32px 0 16px 0;
+    margin: 16px 0;
 }
 
 .form-group input, select {
@@ -103,7 +104,7 @@ input:focus {
     border-color: var(--main-blue);
 }
 
-/* zeby na autofillu bylo biale tlo a nie niebieskie jak jest defaultowo */
+/* zeby na autofillu bylo biale tlo a nie niebieskie jak jest defaultowo   */
 input:-webkit-autofill,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:hover,
@@ -113,3 +114,60 @@ input:-webkit-autofill:active {
     -webkit-text-fill-color: #000 !important;
     transition: background-color 5000s ease-in-out 0s;
 }
+body.auth-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px;
+    min-height: 100vh;
+    background-color: #f2f2f2;
+    font-size: 26px;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 700px;
+    min-height: 800px; 
+    margin-top: 100px;
+    padding: 4rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  
+  .form-group input, select {
+    padding: 16px 19px;
+    font-size: 20px;
+    
+    }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+  
+  .form-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  button {
+    align-self: stretch;
+    margin-top: auto;
+    height: 56px;
+    font-size: large;
+  }
+  
+  #login-email {
+    margin-bottom: 20px;
+  }
+ 

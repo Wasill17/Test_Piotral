@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set page_class = "auth-page" %}
 
 {% block head %}
     <title>Logowanie / Rejestracja</title>
@@ -13,32 +14,35 @@
         <div class="tab {% if tab == 'login' %}active{% endif %}" onclick="showTab('login')">Logowanie</div>
     </div>
 
-    <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}><div class="form-group">
-        <select name="role" id="role" required>
-            <option value="" disabled selected hidden>Moja rola:</option>
-            <option value="student">Uczeń</option>
-            <option value="nauczyciel">Nauczyciel</option>
-        </select>
-  </div>
-        <div class="form-group">
-            <input type="text" name="first-name" id="first-name" placeholder=" " required>
-            <label for="first-name">Imię</label>
-        </div>
-        <div class="form-group">
-            <input type="text" name="last-name" id="last-name" placeholder=" " required>
-            <label for="last-name">Nazwisko</label>
-        </div>
-        <div class="form-group">
-            <input type="email" name="email" id="email" placeholder=" " required>
-            <label for="email">Email</label>
-        </div>
-        <div class="form-group">
-            <input type="password" name="password" id="password" placeholder=" " pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$" required>
-            <label for="password">Hasło</label>
-        </div>
-        <div class="form-group">
-            <input type="password" name="confirm-password" id="confirm-password" placeholder=" " required>
-            <label for="confirm-password">Potwierdź hasło</label>
+    <form id="registerForm" method="POST" action="#" {% if tab != 'register' %}class="hidden"{% endif %}>
+        <div class="form-content">
+            <div class="form-group">
+                <select name="role" id="role" required>
+                    <option value="" disabled selected hidden>Moja rola:</option>
+                    <option value="student">Uczeń</option>
+                    <option value="nauczyciel">Nauczyciel</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="text" name="first-name" id="first-name" placeholder=" " required>
+                <label for="first-name">Imię</label>
+            </div>
+            <div class="form-group">
+                <input type="text" name="last-name" id="last-name" placeholder=" " required>
+                <label for="last-name">Nazwisko</label>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" id="email" placeholder=" " required>
+                <label for="email">Email</label>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" id="password" placeholder=" " pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$" required>
+                <label for="password">Hasło</label>
+            </div>
+            <div class="form-group">
+                <input type="password" name="confirm-password" id="confirm-password" placeholder=" " required>
+                <label for="confirm-password">Potwierdź hasło</label>
+            </div>
         </div>
 
         <button type="submit">Zarejestruj się</button>
@@ -51,19 +55,20 @@
     {% endif %}
 
     <form id="loginForm" method="POST" action="{{ url_for('register', tab='login') }}" {% if tab != 'login' %}class="hidden"{% endif %}>
-        <div class="form-group">
+        <div class="form-content">
+          <div class="form-group">
             <input type="email" name="login-email" id="login-email" placeholder=" " required>
             <label for="login-email">Email</label>
-        </div>
-
-
-        <div class="form-group">
+          </div>
+      
+          <div class="form-group">
             <input type="password" name="login-password" id="login-password" placeholder=" " required>
             <label for="login-password">Hasło</label>
+          </div>
         </div>
-
+      
         <button type="submit">Zaloguj się</button>
-
-    </form>
+      </form>
+      
 </div>
 {% endblock %}

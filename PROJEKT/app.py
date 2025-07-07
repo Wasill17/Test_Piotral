@@ -265,6 +265,12 @@ def add_question_to_test(test_id):
     return render_template('add_question.html', test=test)
 
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
 @app.route('/teacher/questions/<int:question_id>/edit', methods=['GET', 'POST']) #edytuj pytanie
 def edit_question(question_id):
     question = Question.query.get_or_404(question_id)
