@@ -1,87 +1,189 @@
 {% extends "base.html" %}
+{% set page_class = "teacher-page" %}
 
 {% block head %}
-  <title>Oceny Uczniów</title>
+  <title>Oceny uczniów</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
-    .grades-container {
-      width: 80%;
-      margin: 0 auto;
-      margin-top: 30px;
+    html, body {
+      height: 100%;
+      margin: 0;
     }
-    details {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 10px;
-      margin-bottom: 15px;
-      background-color: #f9f9f9;
+
+    .page-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
-    summary {
-      font-size: 1.2em;
+
+    .return-btn-wrapper {
+      position: absolute;
+      top: 100px;
+      left: 40px;
+      z-index: 10;
+    }
+
+    .back-btn {
+      background-color: #eeeeee;
+      color: #333;
+      padding: 12px 24px;
+      border-radius: 8px;
       font-weight: bold;
-      cursor: pointer;
-      outline: none;
+      text-decoration: none;
+      border: 2px solid #ccc;
+      transition: all 0.25s ease;
+      display: inline-block;
     }
-    table {
+
+    .back-btn:hover {
+      background-color: #ddd;
+      transform: scale(1.02);
+    }
+
+    .grades-panel {
+      flex: 1;
+      margin: 7rem auto 4rem;
+      width: 100%;
+      max-width: 1600px;
+      padding: 2rem;
+      background: white;
+      border: 3px solid #138d91;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.07);
+    }
+
+    .grades-panel h1 {
+      font-size: 36px;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: black;
+    }
+
+    .grades-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
     }
-    th, td {
+
+    .grades-table th,
+    .grades-table td {
+      padding: 12px 15px;
       border: 1px solid #ddd;
-      padding: 8px;
       text-align: left;
+      font-size: 16px;
     }
-    th {
-      background-color: #f5f5f5;
+
+    .grades-table th {
+      background-color: #138d91;
+      color: white;
+      font-weight: bold;
     }
-    .no-grades {
-      font-style: italic;
-      color: #666;
-      text-align: center;
+
+    .grades-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .grades-actions a {
+      background-color: #138d91;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .grades-actions a:hover {
+      background-color: #0f7c80;
+    }
+
+    .footer {
+      background-color: #f6f6f6;
+      padding: 1.5rem 2rem;
+      font-size: 0.9rem;
+      color: #7a7a7a;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      list-style: none;
+      gap: 0.8rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer-links a {
+      text-decoration: none;
+      color: #7a7a7a;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: #333;
     }
   </style>
 {% endblock %}
 
 {% block body %}
-  <div class="grades-container">
-    <h1 style="text-align: center; font-size: 2em; margin-bottom: 20px;">Oceny Uczniów</h1>
+<div class="page-container">
+  {% include "components/navbar.html" %}
 
-    {% for group in groups %}
-      <details>
-        <summary>{{ group.name }}</summary>
-        <table>
-          <thead>
-            <tr>
-              <th>ID ucznia</th>
-              <th>Imię i nazwisko</th>
-              <th>Przedmiot</th>
-              <th>Oceny</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for student in group.students %}
-              {% if student.grades|length > 0 %}
-                {% for subject_name, grades in student.grades|groupby('subject.subject_name') %}
-                  <tr>
-                    <td>{{ student.id }}</td>
-                    <td>{{ student.first_name }} {{ student.last_name }}</td>
-                    <td>{{ subject_name }}</td>
-                    <td>{{ grades|map(attribute='value')|join(', ') }}</td>
-                  </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td>{{ student.id }}</td>
-                  <td>{{ student.first_name }} {{ student.last_name }}</td>
-                  <td colspan="2" class="no-grades">Brak ocen</td>
-                </tr>
-              {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </details>
-    {% endfor %}
+  <div class="return-btn-wrapper">
+    <a href="{{ url_for('teacher') }}" class="back-btn">⬅ Wróć do panelu</a>
   </div>
+
+  <div class="grades-panel">
+    <h1>Oceny uczniów</h1>
+
+    <table class="grades-table">
+      <thead>
+        <tr>
+          <th>Uczeń</th>
+          <th>Przedmiot</th>
+          <th>Ocena</th>
+          <th>Data</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for grade in grades %}
+        <tr>
+          <td>{{ grade.student.name }}</td>
+          <td>{{ grade.subject }}</td>
+          <td>{{ grade.grade }}</td>
+          <td>{{ grade.date }}</td>
+          <td class="grades-actions">
+            <a href="{{ url_for('edit_grade', grade_id=grade.id) }}">Edytuj</a>
+            <a href="{{ url_for('delete_grade', grade_id=grade.id) }}">Usuń</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" style="text-align:center; color:#777;">Brak ocen do wyświetlenia.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-container">
+    <p>© TestPiotral 2025</p>
+    <ul class="footer-links">
+      <li>•</li>
+      <li><a href="#">Polityka prywatności</a></li>
+    </ul>
+  </div>
+</footer>
 {% endblock %}
-
-
