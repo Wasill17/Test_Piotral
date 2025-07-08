@@ -1,8 +1,8 @@
+<!-- components/navbar.html -->
 <div class="header">
   <div class="nav-left">
     <img src="{{ url_for('static', filename='img/monke.png') }}" class="logo">
     <span class="brand">TestPiotral</span>
-    
   </div>
 
   <nav class="navbar teacher-dropdown">
@@ -12,10 +12,10 @@
       <div class="dropdown">
         <button class="dropbtn">Nauczyciel</button>
         <div class="dropdown-content">
-          <a href="{{ url_for('teacher') }}">Panel</a>
+          <a href="{{ url_for('teacher') }}">Panel główny</a>
           <a href="{{ url_for('teacher_tests') }}">Testy</a>
-          <a href="{{ url_for('grades') }}">Oceny</a>
-          <a href="{{ url_for('groups_teacher') }}">Grupy</a>
+          <a href="{{ url_for('grades') }}">Oceny uczniów</a>
+          <a href="{{ url_for('groups_teacher') }}">Grupy zajęć</a>
         </div>
       </div>
     {% endif %}

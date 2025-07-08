@@ -1,19 +1,73 @@
 {% extends "base.html" %}
 {% set page_class = "index" %}
 
+{% block head %}
+  <title>TestPiotral - Strona Główna</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% endblock %}
+
 {% block body %}
-  <div class="hero fade-in-scroll">
-    <div class="hero-left">
-      <h1>Aplikacja Testująca</h1>
-      <p>Łatwa w obsłudze i intuicyjna. <strong>TestPiotral</strong> daje Ci wszystkie narzędzia potrzebne do tworzenia bezpiecznych testów — po Twojemu. 
-        <br>Kliknij poniżej, aby rozpocząć.</p>
-      <a href="/register" class="btn3">Zacznij teraz</a>
-    </div>
-    <div class="hero-right">
-      <img src="{{ url_for('static', filename='img/szkicc.png') }}" alt="VISCA EL BARCA">
-    </div>
+<div class="header">
+  <div class="nav-left">
+    <img src="{{ url_for('static', filename='img/monke.png') }}" class="logo">
+    <span class="brand">TestPiotral</span>
   </div>
-<!-- Sekcja ze statystykami -->
+
+  <nav class="navbar teacher-dropdown">
+    <a href="{{ url_for('index') }}" class="dropbtn">Strona główna</a>
+
+    <div class="dropdown">
+      <button class="dropbtn">Nauczyciel</button>
+      <div class="dropdown-content">
+        <a href="{{ url_for('teacher') }}">Panel główny</a>
+        <a href="{{ url_for('teacher_tests') }}">Testy</a>
+        <a href="{{ url_for('grades') }}">Oceny uczniów</a>
+        <a href="{{ url_for('groups_teacher') }}">Grupy zajęć</a>
+      </div>
+    </div>
+
+    {% if page_class == 'index' %}
+<div class="dropdown">
+  <button class="dropbtn">Uczeń</button>
+  <div class="dropdown-content">
+    {% if session.user_id %}
+      <a href="{{ url_for('student') }}">Panel ucznia</a>
+      <a href="{{ url_for('available_tests') }}">Testy</a>
+      <a href="{{ url_for('student_subjects') }}">Przedmioty</a>
+      <a href="#">Oceny</a> <!-- Dodać później -->
+    {% else %}
+      <a href="{{ url_for('register', tab='login') }}">Panel ucznia</a>
+      <a href="{{ url_for('register', tab='login') }}">Testy</a>
+      <a href="{{ url_for('register', tab='login') }}">Przedmioty</a>
+      <a href="{{ url_for('register', tab='login') }}">Oceny</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+  </nav>
+
+  <div class="auth-buttons">
+    {% if session.user_id %}
+      <a href="{{ url_for('logout') }}" class="auth-link">Wyloguj się</a>
+    {% else %}
+      <a href="{{ url_for('register', tab='login') }}" class="auth-link">Zaloguj się</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="hero fade-in-scroll">
+  <div class="hero-left">
+    <h1>Aplikacja Testująca</h1>
+    <p>Łatwa w obsłudze i intuicyjna. <strong>TestPiotral</strong> daje Ci wszystkie narzędzia potrzebne do tworzenia bezpiecznych testów — po Twojemu. 
+      <br>Kliknij poniżej, aby rozpocząć.</p>
+    <a href="/register" class="btn3">Zacznij teraz</a>
+  </div>
+  <div class="hero-right">
+    <img src="{{ url_for('static', filename='img/szkicc.png') }}" alt="VISCA EL BARCA">
+  </div>
+</div>
+
 <section class="stats-section fade-in-scroll">
   <p class="stats-header">Zaufali nam już <strong>2</strong> nauczycieli z całego świata</p>
   <div class="stats-box">
@@ -33,7 +87,7 @@
     </div>
   </div>
 </section>
-<!-- Sekcja o bezpieczenstwie -->
+
 <section class="security-section fade-in-scroll">
   <div class="security-content">
     <div class="security-image">
@@ -48,12 +102,10 @@
     </div>
   </div>
 </section>
-<!-- Sekcja Dlaczego TestPiotral (lista zalet jest przykladowa) -->
- <!-- szkic1  -->
+
 <section class="why-section fade-in-scroll">
   <h2 class="why-title">Dlaczego TestPiotral?</h2>
   <div class="why-content">
-    
     <div class="why-box">
       <img class="sketch" src="{{ url_for('static', filename='img/szkic1.png') }}" alt="Szkic 1">
       <div class="why-text">
@@ -65,7 +117,7 @@
         </ul>
       </div>
     </div>
-  <!-- szkic2 -->
+
     <div class="why-box reverse">
       <img class="sketch" src="{{ url_for('static', filename='img/szkic2.png') }}" alt="Szkic 2">
       <div class="why-text">
@@ -80,7 +132,6 @@
   </div>
 </section>
 
-<!-- sekcja z motto (?) -->
 <section class="motto-container fade-in-scroll">
   <div class="motto-text">
     <p class="motto-top">Testuj mądrze, ucz się lepiej.</p>
@@ -96,7 +147,6 @@
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-container">
     <p>Copyright © Testpiotral 2025</p>
