@@ -608,9 +608,21 @@ def teacher_test_results(test_id):
         return redirect(url_for('register', tab='login'))
 
     test = Test.query.get_or_404(test_id)
-    # Pobierz wszystkie próby uczniów dla tego testu
-    attempts = StudentAttempt.query.filter_by(test_id=test.id).all()
-    return render_template('teacher_test_results.html', test=test, attempts=attempts)
+
+    # Zbierz results dla szablonu
+    results = []
+    for a in test.attempts:
+        results.append({
+            'student': a.student,
+            'score': a.score,
+            'total_points': test.total_points
+        })
+
+    return render_template(
+        'teacher_test_results.html',
+        test=test,
+        results=results
+    )
 
 
 

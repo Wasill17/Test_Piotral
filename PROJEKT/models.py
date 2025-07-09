@@ -60,6 +60,10 @@ class Test(db.Model):
 
     groups = db.relationship('Group', secondary='test_groups', backref='tests')
 
+    @property
+    def total_points(self):
+        return sum(tq.points for tq in self.test_questions)
+
     def __repr__(self):
         return f'<Test {self.title}>'
 
