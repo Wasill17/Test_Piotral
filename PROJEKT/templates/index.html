@@ -34,12 +34,10 @@
       <a href="{{ url_for('student') }}">Panel ucznia</a>
       <a href="{{ url_for('available_tests') }}">Testy</a>
       <a href="{{ url_for('student_subjects') }}">Przedmioty</a>
-      <a href="#">Oceny</a> <!-- Dodać później -->
     {% else %}
       <a href="{{ url_for('register', tab='login') }}">Panel ucznia</a>
       <a href="{{ url_for('register', tab='login') }}">Testy</a>
       <a href="{{ url_for('register', tab='login') }}">Przedmioty</a>
-      <a href="{{ url_for('register', tab='login') }}">Oceny</a>
     {% endif %}
   </div>
 </div>
@@ -64,7 +62,7 @@
     <a href="/register" class="btn3">Zacznij teraz</a>
   </div>
   <div class="hero-right">
-    <img src="{{ url_for('static', filename='img/szkicc.png') }}" alt="VISCA EL BARCA">
+    <img src="{{ url_for('static', filename='img/dashboard.png') }}" alt="VISCA EL BARCA">
   </div>
 </div>
 

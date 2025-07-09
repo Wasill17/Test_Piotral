@@ -117,7 +117,7 @@ body.index {
 }
 
 .hero-right img {
-  max-width: 65%;
+  max-width: 75%;
   height: auto;
   border-radius: 20px;
 }
@@ -328,7 +328,7 @@ body.index {
   background: linear-gradient(90deg, #2b3444, #3f5475);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; 
   line-height: 1.2;
   text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
 }
