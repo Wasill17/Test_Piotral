@@ -138,41 +138,28 @@
 <div class="page-container">
   {% include "components/navbar.html" %}
 
-  <div class="return-btn-wrapper">
-    <a href="{{ url_for('teacher') }}" class="back-btn">⬅ Wróć do panelu</a>
-  </div>
+  <table class="grades-table">
+  <thead>
+    <tr>
+      <th>Uczeń</th>
+      <th>Test</th>
+      <th>Ocena</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for grade in grades %}
+    <tr>
+      <td>{{ grade.user.first_name }} {{ grade.user.last_name }}</td>
+      <td>{{ grade.attempt.test.title }}</td>
+      <td>{{ grade.value }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="3" style="text-align:center; color:#777;">Brak ocen do wyświetlenia.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
 
-  <div class="grades-panel">
-    <h1>Oceny uczniów</h1>
-
-    <table class="grades-table">
-      <thead>
-        <tr>
-          <th>Uczeń</th>
-          <th>Przedmiot</th>
-          <th>Ocena</th>
-          <th>Data</th>
-          <th>Akcje</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for grade in grades %}
-        <tr>
-          <td>{{ grade.student.name }}</td>
-          <td>{{ grade.subject }}</td>
-          <td>{{ grade.grade }}</td>
-          <td>{{ grade.date }}</td>
-          <td class="grades-actions">
-            <a href="{{ url_for('edit_grade', grade_id=grade.id) }}">Edytuj</a>
-            <a href="{{ url_for('delete_grade', grade_id=grade.id) }}">Usuń</a>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="5" style="text-align:center; color:#777;">Brak ocen do wyświetlenia.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
     </table>
   </div>
 </div>

@@ -305,39 +305,43 @@ def studentlist_teacher():
     return render_template('studentlist_teacher.html', students=students)
 
 
-@app.route('/grades', methods=['POST', 'GET']) #narazie nie ma nic z tym po zmianie bazy na stronie
+@app.route('/grades', methods=['GET', 'POST'])
 def grades():
     if session.get('role') != 'nauczyciel':
         return redirect(url_for('register', tab='login'))
+
+    teacher_id = session['user_id']
+
     if request.method == 'POST':
+        # ——— Twoja logika dodawania oceny, ale nie musisz tu odświeżać grades ———
         try:
             grade_content = int(request.form['grade'])
-
             if grade_content < 2 or grade_content > 5:
                 return "Ocena musi być z zakresu 2–5"
 
             new_grade = Grade(
                 value=grade_content,
                 user_id=session['user_id'],
-                subject_id=int(request.form['subject_id']),  # jeśli masz formularz z przedmiotem
-                added_date=datetime.utcnow()
+                subject_id=int(request.form['subject_id']),
+                added_date=datetime.utcnow(),
+                attempt_id=int(request.form['attempt_id'])  # jeśli używasz attempt_id
             )
             db.session.add(new_grade)
             db.session.commit()
-            return redirect('/')
+            return redirect(url_for('grades'))
         except ValueError:
             return "Wartość oceny musi być liczbą całkowitą"
         except Exception as e:
             return f"Wystąpił błąd: {e}"
 
+    # ——— GET — pobierz oceny z testów tego nauczyciela ———
+    grades = Grade.query \
+        .join(StudentAttempt, Grade.attempt_id == StudentAttempt.id) \
+        .join(Test, StudentAttempt.test_id == Test.id) \
+        .filter(Test.teacher_id == teacher_id) \
+        .all()
 
-    else:
-        teacher_id = session.get('user_id')
-        groups = Group.query.filter_by(teacher_id=teacher_id).all()
-        for group in groups:
-            for student in group.students:
-                student.grades = Grade.query.filter_by(user_id=student.id).all()
-        return render_template('grades.html', groups=groups)
+    return render_template('grades.html', grades=grades)
 
 
 @app.route('/groups_teacher', methods=['GET', 'POST']) #tworzenie grupy, dodawanie studentów i ich usuwanie
@@ -653,11 +657,13 @@ def student_subjects():
         .filter_by(user_id=user.id) \
         .order_by(Grade.added_date.desc()) \
         .all()
-
+    #grades = Grade.query.join(StudentAttempt).join(Test).filter(Test.teacher_id == session['user_id']).all()
     # 4) Pogru­puj oceny po przedmiocie
     grades_by_subject = defaultdict(list)
     for g in grades:
         grades_by_subject[g.subject_id].append(g)
+
+
 
     return render_template(
         'student_subjects.html',
